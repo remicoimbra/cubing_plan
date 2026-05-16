@@ -81,6 +81,12 @@ const DRILLS = {
       duration: 20,
       tip: "Check Juliette Sébastien's Google sheet and practice on bestsiteever.net.",
     },
+    {
+      name: "Fix your algorithms",
+      desc: "Change your bad algorithms : learn optimal ones.",
+      duration: 15,
+      tip: "Use the same algorithms as world class speedcubers.",
+    },
   ],
 
   solutions: [
@@ -438,13 +444,13 @@ async function generatePDF(schedule, priorities, totalHours) {
     const CONTENT_W = PAGE_W - MARGIN * 2;
     let y = MARGIN;
 
-    // ── Palette ──
-    const COL_BG = [10, 10, 20];
-    const COL_CARD = [24, 24, 40];
-    const COL_ACCENT = [99, 179, 237];
-    const COL_TEXT = [230, 230, 240];
-    const COL_MUTED = [140, 140, 170];
-    const COL_WHITE = [255, 255, 255];
+    // ── Palette — mirrors styles.css tokens ──
+    const COL_BG = [10, 10, 20]; // --bg:      #0a0a14
+    const COL_CARD = [28, 28, 46]; // --surface2:#1c1c2e
+    const COL_ACCENT = [237, 177, 99]; // --accent:  #edb163
+    const COL_TEXT = [226, 232, 240]; // --text:    #e2e8f0
+    const COL_MUTED = [113, 128, 150]; // --muted:   #718096
+    const COL_WHITE = [226, 232, 240]; // same as --text for body copy
 
     // ── Helper: new page with dark background ──
     function newPage() {
@@ -506,8 +512,8 @@ async function generatePDF(schedule, priorities, totalHours) {
       doc.setTextColor(...COL_TEXT);
       doc.text(areaLabel(key), MARGIN, y + BAR_H / 2 + 1);
 
-      // Track
-      doc.setFillColor(40, 40, 60);
+      // Track — --border: #2a2a42
+      doc.setFillColor(42, 42, 66);
       doc.roundedRect(MARGIN + LABEL_W, y, BAR_W, BAR_H, 2, 2, "F");
 
       // Fill
@@ -530,8 +536,8 @@ async function generatePDF(schedule, priorities, totalHours) {
     for (const { day, sessions, totalMinutes } of schedule) {
       newPage();
 
-      // Day header strip
-      doc.setFillColor(30, 30, 50);
+      // Day header strip — --surface: #13131f
+      doc.setFillColor(19, 19, 31);
       doc.rect(0, 0, PAGE_W, 22, "F");
 
       doc.setFont("helvetica", "bold");
@@ -565,19 +571,18 @@ async function generatePDF(schedule, priorities, totalHours) {
 
         checkPageBreak(cardH + 6);
 
-        // Card background
-        doc.setFillColor(24, 24, 40);
+        // Card background — --surface2: #1c1c2e
+        doc.setFillColor(...COL_CARD);
         doc.roundedRect(MARGIN, y, CONTENT_W, cardH, 3, 3, "F");
 
         // Left accent strip
         doc.setFillColor(r, g, b);
         doc.roundedRect(MARGIN, y, 3, cardH, 1.5, 1.5, "F");
 
-        // Area tag pill
+        // Area tag pill — --border: #2a2a42
         const tagX = MARGIN + 7;
         const tagW = doc.getTextWidth(areaLabel(session.area)) + 6;
-        doc.setFillColor(r, g, b, 0.2);
-        doc.setFillColor(r * 0.3, g * 0.3, b * 0.3);
+        doc.setFillColor(42, 42, 66);
         doc.roundedRect(tagX, y + 3, tagW, 5, 1.5, 1.5, "F");
 
         doc.setFont("helvetica", "bold");
