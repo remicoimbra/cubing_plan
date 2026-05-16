@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Cubing Practice Plans</title>
+  </head>
+  <body>
+    <h1>Generate your own cubing practice plan.</h1>
+
+    <form id="planning-form">
+      <!-- what's your 3x3 global average ?-->
+
+      <h3>1. Importance of focus (1 = Low, 5 = High)</h3>
+
+      <div class="range-group">
+        <label for="lookahead">Look ahead</label>
+        <input type="range" id="lookahead" min="1" max="5" value="3" />
+      </div>
+
+      <div class="range-group">
+        <label for="inspection">Inspection</label>
+        <input type="range" id="inspection" min="1" max="5" value="3" />
+      </div>
+
+      <div class="range-group">
+        <label for="turning">Turning</label>
+        <input type="range" id="turning" min="1" max="5" value="3" />
+      </div>
+
+      <div class="range-group">
+        <label for="algorithms">Learning algorithms</label>
+        <input type="range" id="algorithms" min="1" max="5" value="3" />
+      </div>
+
+      <div class="range-group">
+        <label for="solutions">Solutions</label>
+        <input type="range" id="solutions" min="1" max="5" value="3" />
+      </div>
+
+      <h3>2. Day availibilty</h3>
+
+      <div class="days-group">
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Monday" /> Monday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Tuesday" /> Tuesday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Wednesday" />
+          Wednesday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Thursday" />
+          Thursday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Friday" /> Friday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Saturday" />
+          Saturday</label
+        >
+        <label class="day-container"
+          ><input type="checkbox" class="day" value="Sunday" /> Sunday</label
+        >
+      </div>
+
+      <h3>3. Weekly Availability</h3>
+      <label for="practicetime">Total time : </label>
+      <input
+        type="number"
+        id="practicetime"
+        step="1"
+        min="1"
+        max="168"
+        placeholder="Ex: 67"
+        required
+      />
+      hours
+
+      <br /><br />
+      <button type="submit" id="submit-btn">Generate Plan</button>
+    </form>
+
+    <div id="resultat-planning"></div>
+
+    <script src="main.js" defer></script>
+  </body>
+</html>

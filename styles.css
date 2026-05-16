@@ -1,0 +1,437 @@
+/* ─────────────────────────────────────────────
+   Cubing Practice Plans – styles.css
+   Dark, technical aesthetic inspired by
+   speedcubing timers and competition dashboards.
+───────────────────────────────────────────── */
+
+/* ── Reset & tokens ─────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0a0a14;
+  --surface: #13131f;
+  --surface2: #1c1c2e;
+  --border: #2a2a42;
+  --accent: #edb163;
+  --accent2: #9f7aea;
+  --text: #e2e8f0;
+  --muted: #718096;
+  --success: #48bb78;
+  --radius: 10px;
+  --font-title: "Elms Sans", sans-serif;
+  --font-p: "DM Sans", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-p);
+  min-height: 100vh;
+  font-size: 18px;
+}
+
+/* ── Typography ─────────────────────────────── */
+h1 {
+  font-family: var(--font-title);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin: 2.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text);
+  margin: 2rem 0 1rem;
+}
+
+/* ── Form card ──────────────────────────────── */
+#planning-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 620px;
+  margin: 0 auto 2.5rem auto;
+  padding: 2rem;
+}
+
+/* ── Range groups ───────────────────────────── */
+.range-group {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.range-group label {
+  font-size: 1rem;
+  color: var(--text);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: var(--border);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider-badge {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--accent);
+  min-width: 1.5ch;
+  text-align: right;
+}
+
+/* ── Day checkboxes ─────────────────────────── */
+.days-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.day-container {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+  user-select: none;
+}
+
+.day-container:has(input:checked) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.day-container input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Number input ───────────────────────────── */
+input[type="number"] {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: 1rem;
+  padding: 0.4rem 0.6rem;
+  width: 80px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+input[type="number"]:focus {
+  border-color: var(--accent);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  scale: 1.5;
+}
+
+/* ── Submit button ──────────────────────────── */
+#submit-btn {
+  display: block;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.9rem;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--bg);
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#submit-btn:hover {
+  background-color: var(--bg);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+#submit-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Plan preview ───────────────────────────── */
+.plan-preview {
+  max-width: 900px;
+  margin: 3rem auto 0;
+}
+
+.plan-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.plan-header h2 {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  color: var(--accent);
+}
+
+.plan-meta {
+  color: var(--text);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Priority summary ───────────────────────── */
+.priority-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.priority-summary h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.priority-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.priority-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 40px;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.priority-label {
+  font-size: 0.85rem;
+}
+
+.priority-bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.priority-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.priority-value {
+  font-family: var(--font-title);
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* ── Week grid ──────────────────────────────── */
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.2rem;
+}
+
+.day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.day-name {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent);
+}
+
+.day-time {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.session-list {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.session-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+
+.session-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.session-tag {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.session-duration {
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.session-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+  color: var(--text);
+}
+
+.session-desc {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin-bottom: 0.4rem;
+}
+
+.session-tip {
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* ── Toggle details button ──────────────────── */
+.toggle-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  padding: 0.35rem 0.9rem;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  color: var(--text);
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    background 0.15s;
+}
+
+.toggle-details-btn::before {
+  content: "-";
+  display: inline-block;
+}
+
+.toggle-details-btn.collapsed::before {
+  content: "+";
+}
+
+.toggle-details-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Download button ────────────────────────── */
+.download-btn {
+  display: block;
+  margin: 2.5rem auto;
+  padding: 0.9rem 2.5rem;
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.download-btn:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.download-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Responsive tweaks ──────────────────────── */
+@media (max-width: 500px) {
+  .range-group {
+    grid-template-columns: 120px 1fr auto;
+  }
+  .priority-row {
+    grid-template-columns: 110px 1fr 36px;
+  }
+}
