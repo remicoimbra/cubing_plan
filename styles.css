@@ -56,6 +56,13 @@ h3 {
   margin: 2rem 0 1rem;
 }
 
+.section-hint {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  margin-top: -0.5rem;
+}
+
 /* ── Form card ──────────────────────────────── */
 #planning-form {
   background: var(--surface);
@@ -112,39 +119,40 @@ input[type="range"]::-webkit-slider-thumb:hover {
   text-align: right;
 }
 
-/* ── Day checkboxes ─────────────────────────── */
-.days-group {
+/* ── Daily time inputs ──────────────────────── */
+.daily-time-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
-  margin: 0.5rem 0 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.day-container {
-  display: flex;
+.daily-row {
+  display: grid;
+  grid-template-columns: 120px 80px auto 1fr;
   align-items: center;
-  gap: 0.4rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition:
-    border-color 0.15s,
-    background 0.15s;
-  user-select: none;
+  gap: 0.8rem;
 }
 
-.day-container:has(input:checked) {
-  border-color: var(--accent);
-  color: var(--accent);
+.daily-row label {
+  font-size: 1rem;
+  color: var(--text);
 }
 
-.day-container input[type="checkbox"] {
-  accent-color: var(--accent);
-  width: 14px;
-  height: 14px;
+.daily-row span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.daily-row .day-minutes {
+  width: 80px;
+  text-align: center;
+}
+
+/* Dim rows where value is 0 */
+.daily-row.rest-day label,
+.daily-row.rest-day span {
+  opacity: 0.4;
 }
 
 /* ── Number input ───────────────────────────── */
@@ -163,6 +171,10 @@ input[type="number"] {
 
 input[type="number"]:focus {
   border-color: var(--accent);
+}
+
+.day-minutes[value="0"] {
+  color: var(--muted);
 }
 
 input::-webkit-outer-spin-button,
@@ -248,7 +260,7 @@ input::-webkit-inner-spin-button {
 }
 
 .priority-label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
 }
 
 .priority-bar-track {
@@ -266,8 +278,8 @@ input::-webkit-inner-spin-button {
 
 .priority-value {
   font-family: var(--font-title);
-  font-size: 0.75rem;
-  color: var(--muted);
+  font-size: 0.9rem;
+  color: var(--text);
   text-align: right;
 }
 
@@ -433,5 +445,8 @@ input::-webkit-inner-spin-button {
   }
   .priority-row {
     grid-template-columns: 110px 1fr 36px;
+  }
+  .daily-row {
+    grid-template-columns: 110px 70px auto;
   }
 }

@@ -20,8 +20,6 @@
     <h1>Generate your own cubing practice plan.</h1>
 
     <form id="planning-form">
-      <!-- what's your 3x3 global average ?-->
-
       <h3>1. Importance of focus (1 = Low, 5 = High)</h3>
 
       <div class="range-group">
@@ -49,49 +47,113 @@
         <input type="range" id="solutions" min="1" max="5" value="3" />
       </div>
 
-      <h3>2. Day availibilty</h3>
+      <h3>2. Daily availability</h3>
+      <p class="section-hint">
+        Enter how many minutes you can practice each day. Leave at 0 for rest
+        days.
+      </p>
 
-      <div class="days-group">
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Monday" /> Monday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Tuesday" /> Tuesday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Wednesday" />
-          Wednesday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Thursday" />
-          Thursday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Friday" /> Friday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Saturday" />
-          Saturday</label
-        >
-        <label class="day-container"
-          ><input type="checkbox" class="day" value="Sunday" /> Sunday</label
-        >
+      <div class="daily-time-group">
+        <div class="daily-row">
+          <label for="day-monday">Monday</label>
+          <input
+            type="number"
+            id="day-monday"
+            class="day-minutes"
+            data-day="Monday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-tuesday">Tuesday</label>
+          <input
+            type="number"
+            id="day-tuesday"
+            class="day-minutes"
+            data-day="Tuesday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-wednesday">Wednesday</label>
+          <input
+            type="number"
+            id="day-wednesday"
+            class="day-minutes"
+            data-day="Wednesday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-thursday">Thursday</label>
+          <input
+            type="number"
+            id="day-thursday"
+            class="day-minutes"
+            data-day="Thursday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-friday">Friday</label>
+          <input
+            type="number"
+            id="day-friday"
+            class="day-minutes"
+            data-day="Friday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-saturday">Saturday</label>
+          <input
+            type="number"
+            id="day-saturday"
+            class="day-minutes"
+            data-day="Saturday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
+        <div class="daily-row">
+          <label for="day-sunday">Sunday</label>
+          <input
+            type="number"
+            id="day-sunday"
+            class="day-minutes"
+            data-day="Sunday"
+            min="0"
+            max="480"
+            step="5"
+            value="0"
+          />
+          <span>min</span>
+        </div>
       </div>
 
-      <h3>3. Weekly Availability</h3>
-      <label for="practicetime">Total time : </label>
-      <input
-        type="number"
-        id="practicetime"
-        step="1"
-        min="1"
-        max="168"
-        placeholder="Ex: 67"
-        required
-      />
-      hours
-
-      <br /><br />
       <button type="submit" id="submit-btn">Generate Plan</button>
     </form>
 

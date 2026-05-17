@@ -19,13 +19,12 @@ const DRILLS = {
     {
       name: "Blindfolded steps",
       desc: "Do each of these steps with your eyes closed : cross+1, F2L 2&3, F2L 4 + EO, OLL, PLL.",
-      //   desc: "Do each of these steps with your eyes closed : cross; F2L 1, F2L 2, F2L 3, F2L 4, OLL, PLL.",
       duration: 15,
       tip: "Take as much time as you want for each step, the goal is to success.",
     },
     {
       name: "Metronome solves",
-      desc: "Turn the cube at each BPM of your metronome while keeping your solutions orptimal.",
+      desc: "Turn the cube at each BPM of your metronome while keeping your solutions optimal.",
       duration: 10,
       tip: "Increase the BPM by a little bit every practice session.",
     },
@@ -41,7 +40,6 @@ const DRILLS = {
     {
       name: "Untimed inspection",
       desc: "Predict your cross and your first F2L pair, then solve them blindfolded.",
-      //   desc: "Predict your cross, then solve it blindfolded.",
       duration: 20,
       tip: "Don't time yourself ! Take as much time as needed.",
     },
@@ -62,7 +60,7 @@ const DRILLS = {
     },
     {
       name: "Burst turning",
-      desc: "Do untimed solves where you turn as fast as possible, psause between every steps in your solve.",
+      desc: "Do untimed solves where you turn as fast as possible, pause between every step in your solve.",
       duration: 10,
       tip: "Keep your turning clean. Once you feel comfortable, increase your turning speed.",
     },
@@ -107,68 +105,63 @@ const DRILLS = {
 
 // ── 2. SCHEDULE BUILDER ────────────────────────
 
+/** Round a minute value to the nearest 5 */
+const round5 = (n) => Math.round(n / 5) * 5;
+
+const DAY_ORDER = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
 /**
- * Distributes available hours across selected days,
- * weighted by the user's focus priorities.
+ * Builds a weekly schedule based on per-day budgets and priorities.
  *
- * @param {Object} priorities  – { lookahead, inspection, turning, algorithms, solutions }
- * @param {string[]} days      – selected weekday names
- * @param {number} totalHours  – total weekly practice time in hours
- * @returns {Object[]}         – array of day objects with assigned drills
+ * @param {Object} priorities   – { lookahead, inspection, turning, algorithms, solutions }
+ * @param {Object} dayBudgets   – { Monday: 60, Wednesday: 45, ... } (minutes, only active days)
+ * @returns {Object[]}          – array of day objects with assigned drills
  */
-function buildSchedule(priorities, days, totalHours) {
-  const totalMinutes = totalHours * 60;
+function buildSchedule(priorities, dayBudgets) {
+  // Preserve canonical week order, only include days with time > 0
+  const days = DAY_ORDER.filter((d) => (dayBudgets[d] || 0) > 0);
 
-  const WEEKEND = ["Saturday", "Sunday"];
-  const weekendDays = days.filter((d) => WEEKEND.includes(d));
-  const weekDays = days.filter((d) => !WEEKEND.includes(d));
+  if (days.length === 0) return [];
 
-  // Weekend days get 2× the time of weekdays
-  // totalMinutes = weekDays.length * unit + weekendDays.length * 2 * unit
-  const unit =
-    totalMinutes / (weekDays.length + weekendDays.length * 2) ||
-    totalMinutes / days.length;
-
-  const dayBudgets = {};
-  days.forEach((d) => {
-    dayBudgets[d] = Math.round(WEEKEND.includes(d) ? unit * 2 : unit);
-  });
-
-  // Half the day budget is classic solves, half is skill work
   // ── Assign ONE skill area per day ──────────────────────────────────────
-  // Sort areas by priority descending (highest first → gets weekend)
   const areas = Object.keys(priorities);
   const sortedAreas = [...areas].sort((a, b) => priorities[b] - priorities[a]);
 
-  // Group low-priority skills (priority <= 2) together — they share a day
+  // Group low-priority skills (priority < 3) together — they share a day
   const HIGH_THRESHOLD = 3;
   const highAreas = sortedAreas.filter((a) => priorities[a] >= HIGH_THRESHOLD);
   const lowAreas = sortedAreas.filter((a) => priorities[a] < HIGH_THRESHOLD);
 
-  // Build the list of "slots": each high area gets its own slot; all low areas share one slot
-  // If there are more slots than days, merge the lowest-priority high areas too
+  // Build the list of "slots": each high area gets its own slot; all low areas share one
   const slots = [...highAreas.map((a) => [a])];
   if (lowAreas.length > 0) slots.push(lowAreas);
 
-  // Sort days: weekend first (they get the most important skills), then weekdays
-  const sortedDays = [
-    ...days.filter((d) => WEEKEND.includes(d)),
-    ...days.filter((d) => !WEEKEND.includes(d)),
-  ];
+  // Sort days: days with the most time first (they get the most important skills)
+  const sortedDays = [...days].sort(
+    (a, b) => (dayBudgets[b] || 0) - (dayBudgets[a] || 0),
+  );
 
   // If more slots than days: merge the last N slots into the last day
   while (slots.length > sortedDays.length) {
     const last = slots.pop();
     slots[slots.length - 1].push(...last);
   }
-  // If fewer slots than days: repeat skills on extra days (cycle)
-  const daySkillMap = {}; // day → [area, ...]
+
+  // Map each day (sorted by time desc) to a skill slot
+  const daySkillMap = {};
   sortedDays.forEach((day, i) => {
     daySkillMap[day] = slots[i % slots.length];
   });
 
   // Skills with priority 5 get a short bonus drill on days where they're NOT the main focus
-  // Only if the day has enough budget (>= 60 min total)
   const BONUS_THRESHOLD = 5;
   const BONUS_MIN = 10;
   const BONUS_DAY_MIN_BUDGET = 60;
@@ -176,11 +169,11 @@ function buildSchedule(priorities, days, totalHours) {
     (a) => priorities[a] >= BONUS_THRESHOLD,
   );
 
-  // ── Build sessions per day ──────────────────────────────────────────────
+  // ── Build sessions per day (in canonical week order) ──────────────────
   const schedule = days.map((day, dayIndex) => {
     const budget = dayBudgets[day];
-    const classicMinutes = Math.round(budget * 0.5);
-    let drillBudget = budget - classicMinutes;
+    const classicMinutes = round5(budget * 0.5);
+    const drillBudget = budget - classicMinutes;
 
     const areaList = daySkillMap[day];
     const sessions = [];
@@ -194,7 +187,7 @@ function buildSchedule(priorities, days, totalHours) {
 
     // Main skill budget after reserving bonus slots
     const mainDrillBudget = drillBudget - bonusBudgetTotal;
-    const perAreaBudget = Math.floor(mainDrillBudget / areaList.length);
+    const perAreaBudget = round5(mainDrillBudget / areaList.length);
 
     // Determine if this is the last day of the schedule (for ZBLL review)
     const isLastDay = dayIndex === days.length - 1;
@@ -215,7 +208,7 @@ function buildSchedule(priorities, days, totalHours) {
         const zbllDrill = isLastDay ? reviewDrill : learnDrill;
 
         if (zbllDrill) {
-          const allocatedMin = Math.min(zbllDrill.duration, remaining);
+          const allocatedMin = round5(Math.min(zbllDrill.duration, remaining));
           if (allocatedMin >= 5) {
             sessions.push({
               area,
@@ -237,7 +230,7 @@ function buildSchedule(priorities, days, totalHours) {
       let added = 0;
       while (remaining >= 5 && added < drillPool.length) {
         const drill = drillPool[drillIdx % drillPool.length];
-        const allocatedMin = Math.min(drill.duration, remaining);
+        const allocatedMin = round5(Math.min(drill.duration, remaining));
         if (allocatedMin >= 5) {
           sessions.push({
             area,
@@ -253,11 +246,10 @@ function buildSchedule(priorities, days, totalHours) {
       }
     });
 
-    // ── Bonus drills for priority-5 skills (short, different drill than dedicated day) ──
+    // ── Bonus drills for priority-5 skills ──────────────────────────────
     bonusAreasForDay.forEach((area, bonusIdx) => {
       let drillPool = DRILLS[area];
 
-      // ZBLL logic: bonus algorithms drills obey the same rule
       if (area === "algorithms" && priorities.algorithms >= HIGH_THRESHOLD) {
         drillPool = isLastDay
           ? DRILLS.algorithms.filter((d) => d.name === "Review ZBLL")
@@ -275,7 +267,7 @@ function buildSchedule(priorities, days, totalHours) {
       });
     });
 
-    // ── Classic solves block (always last) ──
+    // ── Classic solves block (always last) ──────────────────────────────
     sessions.push({
       area: "classic",
       drill: "Timed solves",
@@ -284,7 +276,11 @@ function buildSchedule(priorities, days, totalHours) {
       minutes: classicMinutes,
     });
 
-    return { day, sessions, totalMinutes: budget };
+    return {
+      day,
+      sessions,
+      totalMinutes: sessions.reduce((sum, s) => sum + s.minutes, 0),
+    };
   });
 
   return schedule;
@@ -316,8 +312,9 @@ function areaLabel(key) {
 
 // ── 4. HTML PREVIEW RENDERER ──────────────────
 
-function renderPreview(schedule, priorities, totalHours) {
+function renderPreview(schedule, priorities, totalMinutes) {
   const container = document.getElementById("resultat-planning");
+  const totalHours = (totalMinutes / 60).toFixed(1);
 
   // Sort areas by priority for the summary
   const sortedAreas = Object.entries(priorities)
@@ -328,7 +325,7 @@ function renderPreview(schedule, priorities, totalHours) {
     <div class="plan-preview">
       <div class="plan-header">
         <h2>Your Weekly Cubing Plan</h2>
-        <p class="plan-meta">${schedule.length} training days &bull; ${totalHours} hours/week</p>
+        <p class="plan-meta">${schedule.length} training day${schedule.length > 1 ? "s" : ""} &bull; ${totalHours}h / week</p>
         <button id="toggle-details-btn" class="toggle-details-btn">Hide details</button>
       </div>
 
@@ -353,11 +350,11 @@ function renderPreview(schedule, priorities, totalHours) {
       <div class="week-grid">
         ${schedule
           .map(
-            ({ day, sessions, totalMinutes }) => `
+            ({ day, sessions, totalMinutes: dayMin }) => `
           <div class="day-card">
             <div class="day-header">
               <span class="day-name">${day}</span>
-              <span class="day-time">${totalMinutes} min</span>
+              <span class="day-time">${dayMin} min</span>
             </div>
             <div class="session-list">
               ${sessions
@@ -366,7 +363,6 @@ function renderPreview(schedule, priorities, totalHours) {
                 <div class="session-item">
                   <div class="session-top">
                     <span class="session-tag" style="background:var(--bg); border: 1px solid ${AREA_COLORS[s.area]}; color:${AREA_COLORS[s.area]}">${areaLabel(s.area)}</span>
-                 
                     <span class="session-duration">${s.minutes} min</span>
                   </div>
                   <div class="session-name">${s.drill}</div>
@@ -407,7 +403,7 @@ function renderPreview(schedule, priorities, totalHours) {
   document
     .getElementById("download-pdf-btn")
     .addEventListener("click", () =>
-      generatePDF(schedule, priorities, totalHours),
+      generatePDF(schedule, priorities, totalMinutes),
     );
 }
 
@@ -425,10 +421,12 @@ async function loadJsPDF() {
   });
 }
 
-async function generatePDF(schedule, priorities, totalHours) {
+async function generatePDF(schedule, priorities, totalMinutes) {
   const btn = document.getElementById("download-pdf-btn");
   btn.textContent = "⏳ Generating PDF…";
   btn.disabled = true;
+
+  const totalHours = (totalMinutes / 60).toFixed(1);
 
   try {
     const JsPDF = await loadJsPDF();
@@ -449,7 +447,6 @@ async function generatePDF(schedule, priorities, totalHours) {
     const COL_CARD = [28, 28, 46]; // --surface2:#1c1c2e
     const COL_ACCENT = [237, 177, 99]; // --accent:  #edb163
     const COL_TEXT = [226, 232, 240]; // --text:    #e2e8f0
-    const COL_MUTED = [113, 128, 150]; // --muted:   #718096
     const COL_WHITE = [226, 232, 240]; // same as --text for body copy
 
     // ── Helper: new page with dark background ──
@@ -481,9 +478,9 @@ async function generatePDF(schedule, priorities, totalHours) {
 
     y += 10;
     doc.setFontSize(12);
-    doc.setTextColor(...COL_MUTED);
+    doc.setTextColor(...COL_TEXT);
     doc.text(
-      `${schedule.length} days/week  ·  ${totalHours} hour${totalHours > 1 ? "s" : ""}/week`,
+      `${schedule.length} day${schedule.length > 1 ? "s" : ""}/week  ·  ${totalHours}h/week`,
       PAGE_W / 2,
       y,
       { align: "center" },
@@ -491,7 +488,7 @@ async function generatePDF(schedule, priorities, totalHours) {
 
     // Priority bars on cover
     y += 22;
-    doc.setFontSize(11);
+    doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...COL_ACCENT);
     doc.text("FOCUS AREAS", MARGIN, y);
@@ -506,13 +503,12 @@ async function generatePDF(schedule, priorities, totalHours) {
       const [r, g, b] = hexToRgb(AREA_COLORS[key]);
       const fillW = (value / 5) * BAR_W;
 
-      // Label
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
+      doc.setFontSize(18);
       doc.setTextColor(...COL_TEXT);
       doc.text(areaLabel(key), MARGIN, y + BAR_H / 2 + 1);
 
-      // Track — --border: #2a2a42
+      // Track
       doc.setFillColor(42, 42, 66);
       doc.roundedRect(MARGIN + LABEL_W, y, BAR_W, BAR_H, 2, 2, "F");
 
@@ -522,7 +518,7 @@ async function generatePDF(schedule, priorities, totalHours) {
         doc.roundedRect(MARGIN + LABEL_W, y, fillW, BAR_H, 2, 2, "F");
 
       // Score
-      doc.setTextColor(...COL_MUTED);
+      doc.setTextColor(...COL_TEXT);
       doc.text(`${value}/5`, MARGIN + LABEL_W + BAR_W + 3, y + BAR_H / 2 + 1);
 
       y += BAR_H + 5;
@@ -533,10 +529,10 @@ async function generatePDF(schedule, priorities, totalHours) {
     doc.rect(0, PAGE_H - 3, PAGE_W, 3, "F");
 
     // ── Day pages ────────────────────────────────
-    for (const { day, sessions, totalMinutes } of schedule) {
+    for (const { day, sessions, totalMinutes: dayMin } of schedule) {
       newPage();
 
-      // Day header strip — --surface: #13131f
+      // Day header strip
       doc.setFillColor(19, 19, 31);
       doc.rect(0, 0, PAGE_W, 22, "F");
 
@@ -547,8 +543,8 @@ async function generatePDF(schedule, priorities, totalHours) {
 
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
-      doc.setTextColor(...COL_MUTED);
-      doc.text(`${totalMinutes} min total`, PAGE_W - MARGIN, 14, {
+      doc.setTextColor(...COL_TEXT);
+      doc.text(`${dayMin} min total`, PAGE_W - MARGIN, 14, {
         align: "right",
       });
 
@@ -571,7 +567,7 @@ async function generatePDF(schedule, priorities, totalHours) {
 
         checkPageBreak(cardH + 6);
 
-        // Card background — --surface2: #1c1c2e
+        // Card background
         doc.setFillColor(...COL_CARD);
         doc.roundedRect(MARGIN, y, CONTENT_W, cardH, 3, 3, "F");
 
@@ -579,7 +575,7 @@ async function generatePDF(schedule, priorities, totalHours) {
         doc.setFillColor(r, g, b);
         doc.roundedRect(MARGIN, y, 3, cardH, 1.5, 1.5, "F");
 
-        // Area tag pill — --border: #2a2a42
+        // Area tag pill
         const tagX = MARGIN + 7;
         const tagW = doc.getTextWidth(areaLabel(session.area)) + 6;
         doc.setFillColor(42, 42, 66);
@@ -593,7 +589,7 @@ async function generatePDF(schedule, priorities, totalHours) {
         // Duration
         doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
-        doc.setTextColor(...COL_MUTED);
+        doc.setTextColor(...COL_TEXT);
         doc.text(`${session.minutes} min`, PAGE_W - MARGIN - 2, y + 7, {
           align: "right",
         });
@@ -614,10 +610,10 @@ async function generatePDF(schedule, priorities, totalHours) {
         y += descLines.length * 4.5;
 
         // Tip
-        doc.setFont("helvetica", "italic");
+        doc.setFont("helvetica", "normal");
         doc.setFontSize(8);
-        doc.setTextColor(...COL_MUTED);
-        doc.text(tipLines, MARGIN + 7, y + 1);
+        doc.setTextColor(...COL_TEXT);
+        doc.text("->" + tipLines, MARGIN + 7, y + 1);
         y += tipLines.length * 4 + 5;
 
         y += 4; // gap between cards
@@ -630,7 +626,7 @@ async function generatePDF(schedule, priorities, totalHours) {
       doc.setPage(i);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
-      doc.setTextColor(...COL_MUTED);
+      doc.setTextColor(...COL_TEXT);
       doc.text(
         `Generated by Cubing Practice Plans  ·  Page ${i} of ${pageCount}`,
         PAGE_W / 2,
@@ -667,7 +663,6 @@ function hexToRgb(hex) {
 function initSliderLabels() {
   const sliders = document.querySelectorAll("input[type='range']");
   sliders.forEach((slider) => {
-    // Create a live value badge next to each slider
     const badge = document.createElement("span");
     badge.className = "slider-badge";
     badge.textContent = slider.value;
@@ -679,10 +674,26 @@ function initSliderLabels() {
   });
 }
 
-// ── 8. FORM SUBMISSION ────────────────────────
+// ── 8. DAILY INPUT REST-DAY DIMMING ───────────
+
+function initDailyInputs() {
+  const inputs = document.querySelectorAll(".day-minutes");
+  inputs.forEach((input) => {
+    const row = input.closest(".daily-row");
+    const update = () => {
+      const val = parseInt(input.value) || 0;
+      row.classList.toggle("rest-day", val === 0);
+    };
+    update();
+    input.addEventListener("input", update);
+  });
+}
+
+// ── 9. FORM SUBMISSION ────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
   initSliderLabels();
+  initDailyInputs();
 
   const form = document.getElementById("planning-form");
 
@@ -698,37 +709,25 @@ document.addEventListener("DOMContentLoaded", () => {
       solutions: parseInt(document.getElementById("solutions").value),
     };
 
-    // Read selected days (preserve week order)
-    const dayOrder = [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ];
-    const checkedDays = Array.from(
-      document.querySelectorAll(".day:checked"),
-    ).map((cb) => cb.value);
-    const days = dayOrder.filter((d) => checkedDays.includes(d));
+    // Read per-day minutes (only days with time > 0)
+    const dayBudgets = {};
+    let totalMinutes = 0;
 
-    if (days.length === 0) {
-      alert("Please select at least one training day.");
-      return;
-    }
+    document.querySelectorAll(".day-minutes").forEach((input) => {
+      const mins = parseInt(input.value) || 0;
+      if (mins > 0) {
+        dayBudgets[input.dataset.day] = mins;
+        totalMinutes += mins;
+      }
+    });
 
-    // Read total hours
-    const totalHours = parseFloat(
-      document.getElementById("practicetime").value,
-    );
-    if (isNaN(totalHours) || totalHours <= 0) {
-      alert("Please enter a valid number of practice hours.");
+    if (Object.keys(dayBudgets).length === 0) {
+      alert("Please enter at least one training day with time > 0.");
       return;
     }
 
     // Build and display
-    const schedule = buildSchedule(priorities, days, totalHours);
-    renderPreview(schedule, priorities, totalHours);
+    const schedule = buildSchedule(priorities, dayBudgets);
+    renderPreview(schedule, priorities, totalMinutes);
   });
 });
