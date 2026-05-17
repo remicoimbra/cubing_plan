@@ -57,8 +57,8 @@ h3 {
 }
 
 .section-hint {
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 0.9rem;
+  color: var(--text);
   margin-bottom: 1rem;
   margin-top: -0.5rem;
 }
@@ -141,18 +141,12 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 .daily-row span {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: var(--text);
 }
 
 .daily-row .day-minutes {
   width: 80px;
   text-align: center;
-}
-
-/* Dim rows where value is 0 */
-.daily-row.rest-day label,
-.daily-row.rest-day span {
-  opacity: 0.4;
 }
 
 /* ── Number input ───────────────────────────── */
@@ -173,8 +167,8 @@ input[type="number"]:focus {
   border-color: var(--accent);
 }
 
-.day-minutes[value="0"] {
-  color: var(--muted);
+.day-minutes {
+  color: var(--text);
 }
 
 input::-webkit-outer-spin-button,
