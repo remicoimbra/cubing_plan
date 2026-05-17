@@ -98,7 +98,7 @@ const DRILLS = {
       name: "Untimed solves",
       desc: "Think of every turn you make, be as efficient as possible.",
       duration: 20,
-      tip: "JSP",
+      tip: "Don't be afraid to try new stuff !",
     },
   ],
 };
