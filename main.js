@@ -38,8 +38,14 @@ const DRILLS = {
 
   inspection: [
     {
-      name: "Unlimited inspection",
-      desc: "Predict your cross and your first F2L pair, then solve them blindfolded.",
+      name: "Cross +1",
+      desc: "Predict your cross and first F2L pair, then solve them blindfolded.",
+      duration: 20,
+      tip: "Don't time yourself ! Take as much time as needed.",
+    },
+    {
+      name: "Corss +2",
+      desc: "Predict your cross and two F2L pairs, then solve them blindfolded.",
       duration: 20,
       tip: "Don't time yourself ! Take as much time as needed.",
     },
@@ -169,14 +175,66 @@ function buildSchedule(priorities, dayBudgets) {
     (a) => priorities[a] >= BONUS_THRESHOLD,
   );
 
+  // ── ZBLL duration table (scaled by priority, shared by Review and Learn) ──
+  // priority 1 → 0 min (skip), 2 → 5 min, 3 → 10 min, 4 → 15 min, 5 → 20 min
+  const ZBLL_MINUTES = { 1: 0, 2: 5, 3: 10, 4: 15, 5: 20 };
+  const zbllMin = ZBLL_MINUTES[priorities.algorithms] ?? 0;
+
+  const reviewDrill = DRILLS.algorithms.find((d) => d.name === "Review ZBLL");
+  const learnDrill = DRILLS.algorithms.find((d) => d.name === "Learn ZBLL");
+
+  // ── How many "Learn ZBLL" sessions to spread across the week ──────────
+  // ≤3 training days → 1 session, 4–6 → 2 sessions, 7 → 3 sessions
+  const learnZbllCount = days.length === 7 ? 3 : days.length >= 4 ? 2 : 1;
+
+  // Assign Learn ZBLL to the days with the most available time (sortedDays is already sorted desc)
+  const learnZbllDays = new Set(
+    sortedDays.slice(0, learnZbllCount).map((d) => d),
+  );
+
+  // ── Review ZBLL frequency based on priority ────────────────────────────
+  // priority <= 3 → every other day (dayIndex % 2 === 0)
+  // priority >= 4 → every day
+  const reviewEveryDay = priorities.algorithms >= 4;
+
   // ── Build sessions per day (in canonical week order) ──────────────────
   const schedule = days.map((day, dayIndex) => {
     const budget = dayBudgets[day];
     const classicMinutes = round5(budget * 0.5);
-    const drillBudget = budget - classicMinutes;
+
+    const hasLearnZbll = learnZbllDays.has(day) && zbllMin >= 5 && learnDrill;
+    const hasReviewZbll =
+      zbllMin >= 5 && reviewDrill && (reviewEveryDay || dayIndex % 2 === 0);
+
+    // Reserve ZBLL time upfront
+    const zbllReserved =
+      (hasReviewZbll ? zbllMin : 0) + (hasLearnZbll ? zbllMin : 0);
+    const drillBudget = budget - classicMinutes - zbllReserved;
 
     const areaList = daySkillMap[day];
     const sessions = [];
+
+    // ── Inject Learn ZBLL (on selected days, before Review) ─────────────
+    if (hasLearnZbll) {
+      sessions.push({
+        area: "algorithms",
+        drill: learnDrill.name,
+        desc: learnDrill.desc,
+        tip: learnDrill.tip,
+        minutes: zbllMin,
+      });
+    }
+
+    // ── Inject Review ZBLL (every day if priority >= 4, else every other day) ──
+    if (hasReviewZbll) {
+      sessions.push({
+        area: "algorithms",
+        drill: reviewDrill.name,
+        desc: reviewDrill.desc,
+        tip: reviewDrill.tip,
+        minutes: zbllMin,
+      });
+    }
 
     // Bonus areas = priority-5 skills not already the focus today
     const bonusAreasForDay =
@@ -189,42 +247,15 @@ function buildSchedule(priorities, dayBudgets) {
     const mainDrillBudget = drillBudget - bonusBudgetTotal;
     const perAreaBudget = round5(mainDrillBudget / areaList.length);
 
-    // Determine if this is the last day of the schedule (for ZBLL review)
-    const isLastDay = dayIndex === days.length - 1;
-
     areaList.forEach((area, areaIdx) => {
       let remaining = perAreaBudget;
-      let drillPool = DRILLS[area];
-
-      // ZBLL logic: if algorithms is a key focus (priority >= HIGH_THRESHOLD),
-      // force "Learn ZBLL" on all days except the last, and "Review ZBLL" on the last day.
-      if (area === "algorithms" && priorities.algorithms >= HIGH_THRESHOLD) {
-        const learnDrill = DRILLS.algorithms.find(
-          (d) => d.name === "Learn ZBLL",
-        );
-        const reviewDrill = DRILLS.algorithms.find(
-          (d) => d.name === "Review ZBLL",
-        );
-        const zbllDrill = isLastDay ? reviewDrill : learnDrill;
-
-        if (zbllDrill) {
-          const allocatedMin = round5(Math.min(zbllDrill.duration, remaining));
-          if (allocatedMin >= 5) {
-            sessions.push({
-              area,
-              drill: zbllDrill.name,
-              desc: zbllDrill.desc,
-              tip: zbllDrill.tip,
-              minutes: allocatedMin,
-            });
-            remaining -= allocatedMin;
-          }
-          // Fill remaining budget with other algorithms drills (excluding ZBLL ones)
-          drillPool = DRILLS.algorithms.filter(
-            (d) => d.name !== "Learn ZBLL" && d.name !== "Review ZBLL",
-          );
-        }
-      }
+      // Exclude all ZBLL drills from the algorithms pool (already handled above)
+      let drillPool =
+        area === "algorithms"
+          ? DRILLS[area].filter(
+              (d) => d.name !== "Learn ZBLL" && d.name !== "Review ZBLL",
+            )
+          : DRILLS[area];
 
       let drillIdx = (dayIndex + areaIdx) % (drillPool.length || 1);
       let added = 0;
@@ -248,14 +279,9 @@ function buildSchedule(priorities, dayBudgets) {
 
     // ── Bonus drills for priority-5 skills ──────────────────────────────
     bonusAreasForDay.forEach((area, bonusIdx) => {
-      let drillPool = DRILLS[area];
-
-      if (area === "algorithms" && priorities.algorithms >= HIGH_THRESHOLD) {
-        drillPool = isLastDay
-          ? DRILLS.algorithms.filter((d) => d.name === "Review ZBLL")
-          : DRILLS.algorithms.filter((d) => d.name === "Learn ZBLL");
-      }
-
+      // Skip bonus for algorithms — ZBLL is already handled above
+      if (area === "algorithms") return;
+      const drillPool = DRILLS[area];
       const drill = drillPool[(dayIndex + bonusIdx + 2) % drillPool.length];
       sessions.push({
         area,
@@ -271,7 +297,7 @@ function buildSchedule(priorities, dayBudgets) {
     sessions.push({
       area: "classic",
       drill: "Timed solves",
-      desc: "Do timed solves as you normally would in a session. Focus on applying everything you've worked on today.",
+      desc: "Do timed solves as you normally would in a session. Focus on applying everything you\'ve worked on today.",
       tip: "Film some of your solves and note what caused your worst times.",
       minutes: classicMinutes,
     });
@@ -279,7 +305,7 @@ function buildSchedule(priorities, dayBudgets) {
     return {
       day,
       sessions,
-      totalMinutes: sessions.reduce((sum, s) => sum + s.minutes, 0),
+      totalMinutes: budget,
     };
   });
 
